@@ -78,7 +78,7 @@ curl -X POST http://localhost:3000/orders \
 
 ---
 
-## Sugestões de Melhoria (O Desafio)
+## Sugestões de Melhoria
 
 O objetivo deste trabalho é refatorar o `OrderController` aplicando os princípios SOLID. Abaixo estão as sugestões do que deve ser feito:
 
