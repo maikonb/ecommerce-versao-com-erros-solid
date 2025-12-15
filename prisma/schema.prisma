@@ -10,7 +10,7 @@ datasource db {
 model Product {
   id    Int     @id @default(autoincrement())
   name  String
-  type  String  // "physical" ou "digital" (Violação de tipo primitivo que encoraja IFs)
+  type  String  // "physical" ou "digital" 
   price Float
 }
 
