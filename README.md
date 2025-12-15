@@ -109,10 +109,6 @@ Este é o ponto mais crítico da lógica de negócio.
 
 > **Nota:** Esta estrutura é apenas uma sugestão didática. Você tem liberdade para organizar as pastas de outra forma, desde que os princípios SOLID sejam respeitados.
 
-```text
-## 🌳 Árvore de Arquivos Sugerida (Pós-Refatoração)
-
-> **Nota:** Esta estrutura organiza o código separando claramente o Domínio (regras), a Infraestrutura (ferramentas) e a Aplicação (controllers).
 
 ```text
 src/
