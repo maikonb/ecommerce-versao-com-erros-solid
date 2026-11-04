@@ -1,8 +1,9 @@
-
+import { injectable } from 'inversify';
 import nodemailer from 'nodemailer';
 import { getMailClient } from '../lib/mail';
 import { IMailProvider } from './IMailProvider';
 
+@injectable()
 export class EtherealMailProvider implements IMailProvider {
   async sendMail(message: {
     from: string;

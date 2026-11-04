@@ -1,34 +1,79 @@
 
+import { injectable, inject } from 'inversify';
+
 import { IOrderRepository } from '../repositories/IOrderRepository';
+import { IProductRepository } from '../repositories/IProductRepository';
 import { NotificationService } from './NotificationService';
-
-import { IPaymentMethod } from '../payments/IPaymentMethod';
-import { CreditCardPayment } from '../payments/CreditCardPayment';
-import { PixPayment } from '../payments/PixPayment';
+import { PaymentMethodRegistry } from '../payments/PaymentMethodRegistry';
 import { ProductFactory } from '../domain/ProductFactory';
+import { TYPES } from '../container/types';
 
-
-
+@injectable()
 export class OrderService {
   constructor(
+    @inject(TYPES.OrderRepository)
     private orderRepository: IOrderRepository,
-    private notificationService: NotificationService
+
+    @inject(TYPES.ProductRepository)
+    private productRepository: IProductRepository,
+
+    @inject(TYPES.NotificationService)
+    private notificationService: NotificationService,
+
+    @inject(TYPES.PaymentMethodRegistry)
+    private paymentMethodRegistry: PaymentMethodRegistry
   ) {}
 
+  async processOrder(
+    customer: string,
+    items: { productId: number; quantity: number }[],
+    paymentMethod: string,
+    paymentDetails: any
+  ) {
+    if (!items || items.length === 0) {
+      throw new Error('O carrinho está vazio');
+    }
 
-private getPaymentMethod(paymentMethod: string): IPaymentMethod {
-  if (paymentMethod === 'credit_card') {
-    return new CreditCardPayment();
+    const productsDetails = [];
+    let totalAmount = 0;
+
+    for (const item of items) {
+      if (item.quantity <= 0) {
+        throw new Error('A quantidade do produto deve ser maior que zero');
+      }
+
+      const productData = await this.productRepository.findById(
+        item.productId
+      );
+
+      if (!productData) {
+        throw new Error(`Produto ${item.productId} não encontrado`);
+      }
+
+      const product = ProductFactory.create(productData);
+
+      const freight = product.calculateFreight();
+      const subtotal = product.price * item.quantity;
+      const itemTotal = subtotal + freight;
+
+      totalAmount += itemTotal;
+
+      productsDetails.push({
+        productId: product.id,
+        name: product.name,
+        quantity: item.quantity,
+        unitPrice: product.price,
+        freight,
+        total: itemTotal
+      });
+    }
+
+    const payment = this.paymentMethodRegistry.get(paymentMethod);
+
+    await payment.process(paymentDetails);
+
+    return this.saveOrder(customer, productsDetails, totalAmount);
   }
-
-  if (paymentMethod === 'pix') {
-    return new PixPayment();
-  }
-
-  throw new Error('Método de pagamento não suportado');
-}
-
-
 
   async saveOrder(
     customer: string,
@@ -55,3 +100,4 @@ private getPaymentMethod(paymentMethod: string): IPaymentMethod {
     };
   }
 }
+
